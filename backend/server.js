@@ -36,7 +36,7 @@ const connectDB = async () => {
     console.log('Connected to MongoDB at', uri);
   } catch (err) {
     console.error('MongoDB connection error:', err);
-    setTimeout(connectDB, 5000);
+    setTimeout(connectDB, 9000);
   }
 };
 
@@ -116,7 +116,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 9000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
