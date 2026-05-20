@@ -1,8 +1,8 @@
-# Nova Chat (Dummy Version) 🚀
+# Nova Chat (Dummy Version) 
 
 A modern, full-stack real-time chat application built with Node.js, Express, MongoDB, Socket.IO, and React.
 
-## Features ✨
+## Features 
 - **Real-time Messaging**: Instant one-to-one chat using Socket.IO.
 - **Presence Tracking**: See who's online/offline in real-time.
 - **Persistent History**: Full chat history stored in MongoDB.
@@ -10,7 +10,7 @@ A modern, full-stack real-time chat application built with Node.js, Express, Mon
 - **Modern UI**: Clean, aesthetic design with Light/Dark mode support.
 - **Responsive**: Fully functional on desktop and mobile.
 
-## Quick Start 🏃‍♂️
+## Quick Start 
 
 ### Prerequisites
 - Node.js installed
