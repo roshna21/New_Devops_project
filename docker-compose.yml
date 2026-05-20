@@ -1,0 +1,38 @@
+services:
+  mongodb:
+    image: mongo:8.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  nova-backend:
+    build: ./backend
+    container_name: nova-backend
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=development
+      - PORT=5001
+      - JWT_SECRET=your_super_secret_jwt_key_12345
+      - MONGODB_URI=mongodb://mongodb:27017/nova-chat
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
+
+  nova-frontend:
+    build: ./frontend
+    container_name: nova-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - nova-backend
+
+volumes:
+  mongodb_data:
