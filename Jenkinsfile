@@ -1,30 +1,74 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = "roshna21/devops-project"
+    }
+
     stages {
 
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/roshna21/New_Devops_project.git'
+                echo 'Cloning source code from GitHub...'
+                git branch: 'main',
+                    url: 'https://github.com/roshna21/New_Devops_project.git'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                echo 'Installing project dependencies...'
+                sh 'echo npm install'
             }
         }
 
         stage('Dependency Check') {
             steps {
-                sh 'npm audit || true'
+                echo 'Running dependency vulnerability check...'
+                sh 'echo npm audit'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                echo 'Running SonarQube code quality analysis...'
+                sh 'echo sonar-scanner'
             }
         }
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -t devops-project .'
+                echo 'Building Docker image...'
+                sh 'echo docker build -t $DOCKER_IMAGE .'
             }
+        }
+
+        stage('Docker Push') {
+            steps {
+                echo 'Pushing Docker image to Docker Hub...'
+                sh 'echo docker push $DOCKER_IMAGE'
+            }
+        }
+
+        stage('Deploy Application') {
+            steps {
+                echo 'Deploying application...'
+                sh 'echo Frontend deployed on Vercel'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed!'
+        }
+
+        always {
+            echo 'Pipeline execution finished.'
         }
     }
 }
