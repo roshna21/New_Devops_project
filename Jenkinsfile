@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SONAR_TOKEN = 'YOUR_SONAR_TOKEN'
+        SONAR_TOKEN = 'sqp_e45c411e96ef8c167001bc31224d6fb49b368c9f'
         SONAR_HOST = 'http://host.docker.internal:9002'
         DOCKER_IMAGE = 'roshna21/devops-project'
     }
