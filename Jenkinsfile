@@ -2,10 +2,9 @@ pipeline {
 agent any
 
 environment {
-    FRONTEND_IMAGE = 'roshna21/chat-frontend'
-    BACKEND_IMAGE  = 'roshna21/chat-backend'
+    FRONTEND_IMAGE = 'yashaswinis4/chat-frontend'
+    BACKEND_IMAGE  = 'yashaswinis4/chat-backend'
 }
-
 stages {
 
     stage('Clone Repository') {
@@ -78,23 +77,20 @@ stages {
     }
 
     stage('Docker Login & Push') {
-        steps {
-            withCredentials([usernamePassword(
-                credentialsId: 'Dockerhub',
-                usernameVariable: 'DOCKER_USER',
-                passwordVariable: 'DOCKER_PASS'
-            )]) {
+    steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'Dockerhub',
+            usernameVariable: 'DOCKER_USER',
+            passwordVariable: 'DOCKER_PASS'
+        )]) {
 
-                bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
+            bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
 
-                bat 'docker tag %FRONTEND_IMAGE% %FRONTEND_IMAGE%:latest'
-                bat 'docker push %FRONTEND_IMAGE%:latest'
-
-                bat 'docker tag %BACKEND_IMAGE% %BACKEND_IMAGE%:latest'
-                bat 'docker push %BACKEND_IMAGE%:latest'
-            }
+            bat 'docker push %FRONTEND_IMAGE%'
+            bat 'docker push %BACKEND_IMAGE%'
         }
     }
+}
 
     stage('Deployment') {
         steps {
