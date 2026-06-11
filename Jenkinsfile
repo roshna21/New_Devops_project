@@ -1,82 +1,118 @@
 pipeline {
-    agent any
+agent any
 
-    environment {
-        SONAR_TOKEN = 'sqp_e45c411e96ef8c167001bc31224d6fb49b368c9f'
-        SONAR_HOST = 'http://host.docker.internal:9002'
-        DOCKER_IMAGE = 'roshna21/devops-project'
+```
+environment {
+    FRONTEND_IMAGE = 'roshna21/chat-frontend'
+    BACKEND_IMAGE  = 'roshna21/chat-backend'
+}
+
+stages {
+
+    stage('Clone Repository') {
+        steps {
+            git branch: 'main',
+            url: 'https://github.com/roshna21/New_Devops_project.git'
+        }
     }
 
-    stages {
-
-        stage('Clone Repository') {
-            steps {
-                git branch: 'main',
-                    url: 'https://github.com/roshna21/New_Devops_project.git'
+    stage('Install Frontend Dependencies') {
+        steps {
+            dir('frontend') {
+                bat 'npm install'
             }
         }
+    }
 
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                if [ -d frontend ]; then
-                    cd frontend
-                    npm install
-                    cd ..
-                fi
-
-                if [ -d backend ]; then
-                    cd backend
-                    npm install
-                    cd ..
-                fi
-                '''
+    stage('Install Backend Dependencies') {
+        steps {
+            dir('backend') {
+                bat 'npm install'
             }
         }
+    }
 
-
-        stage('Dependency Check') {
-            steps {
-                dependencyCheck additionalArguments: '--scan .',
-                                odcInstallation: 'OWASP-Dependency-Check'
+    stage('Build Frontend') {
+        steps {
+            dir('frontend') {
+                bat 'npm run build'
             }
         }
+    }
 
-        stage('Publish Dependency Report') {
-            steps {
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+    stage('OWASP Dependency Check') {
+        steps {
+            dependencyCheck additionalArguments: '--scan .',
+                            odcInstallation: 'OWASP-Dependency-Check'
+        }
+    }
+
+    stage('Publish Dependency Report') {
+        steps {
+            dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+        }
+    }
+
+    stage('SonarQube Analysis') {
+        steps {
+            bat '''
+            sonar-scanner.bat ^
+            -D"sonar.projectKey=chat-app" ^
+            -D"sonar.projectName=chat-app" ^
+            -D"sonar.sources=." ^
+            -D"sonar.host.url=http://localhost:9000" ^
+            -D"sonar.token=YOUR_SONAR_TOKEN"
+            '''
+        }
+    }
+
+    stage('Build Frontend Docker Image') {
+        steps {
+            bat 'docker build -t %FRONTEND_IMAGE% ./frontend'
+        }
+    }
+
+    stage('Build Backend Docker Image') {
+        steps {
+            bat 'docker build -t %BACKEND_IMAGE% ./backend'
+        }
+    }
+
+    stage('Docker Login & Push') {
+        steps {
+            withCredentials([usernamePassword(
+                credentialsId: 'dockerhub',
+                usernameVariable: 'DOCKER_USER',
+                passwordVariable: 'DOCKER_PASS'
+            )]) {
+
+                bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
+
+                bat 'docker tag %FRONTEND_IMAGE% %FRONTEND_IMAGE%:latest'
+                bat 'docker push %FRONTEND_IMAGE%:latest'
+
+                bat 'docker tag %BACKEND_IMAGE% %BACKEND_IMAGE%:latest'
+                bat 'docker push %BACKEND_IMAGE%:latest'
             }
         }
+    }
 
-        stage('Build Docker Image') {
-            steps {
-                bat 'docker build -t travel-planner-frontend ./frontend'
-            }
-        }
-        stage('Docker Push') {
-    steps {
-        withCredentials([usernamePassword(
-            credentialsId: 'dockerhub',
-            usernameVariable: 'DOCKER_USER',
-            passwordVariable: 'DOCKER_PASS'
-        )]) {
-
-            bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
-            bat 'docker tag travel-planner-frontend yashaswinis4/travel-planner:latest'
-            bat 'docker push yashaswinis4/travel-planner:latest'
+    stage('Deployment') {
+        steps {
+            echo 'Deployment Stage Completed'
         }
     }
 }
 
+post {
+    success {
+        echo 'Pipeline Executed Successfully'
     }
 
-    post {
-        success {
-            echo 'Build Successful'
-        }
-
-        failure {
-            echo 'Build Failed'
-        }
+    failure {
+        echo 'Pipeline Failed'
     }
+}
+```
+
 }
