@@ -1,7 +1,6 @@
 pipeline {
 agent any
 
-```
 environment {
     FRONTEND_IMAGE = 'roshna21/chat-frontend'
     BACKEND_IMAGE  = 'roshna21/chat-backend'
