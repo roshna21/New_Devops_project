@@ -61,7 +61,7 @@ stages {
             -D"sonar.projectName=chat-app" ^
             -D"sonar.sources=." ^
             -D"sonar.host.url=http://localhost:9000" ^
-            -D"sonar.token=YOUR_SONAR_TOKEN"
+            -D"sonar.token=sqp_e45c411e96ef8c167001bc31224d6fb49b368c9f"
             '''
         }
     }
