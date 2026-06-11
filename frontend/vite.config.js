@@ -13,11 +13,11 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://nova-backend:5001',
+        target: 'http://localhost:5001',
         changeOrigin: true,
       },
       '/socket.io': {
-        target: 'http://nova-backend:5001',
+        target: 'http://localhost:5001',
         ws: true,
       }
     }

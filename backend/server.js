@@ -4,11 +4,14 @@ const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const { MongoMemoryServer } = require('mongodb-memory-server');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 
 dotenv.config();
+
+let mongoServer;
 
 const app = express();
 const server = http.createServer(app);
@@ -32,11 +35,21 @@ app.use('/api/messages', messageRoutes);
 const connectDB = async () => {
   try {
     const uri = process.env.MONGODB_URI;
-    await mongoose.connect(uri);
+    console.log('Attempting connection to MongoDB at:', uri);
+    await mongoose.connect(uri, { serverSelectionTimeoutMS: 2000 });
     console.log('Connected to MongoDB at', uri);
   } catch (err) {
-    console.error('MongoDB connection error:', err);
-    setTimeout(connectDB, 9000);
+    console.error('MongoDB connection error:', err.message);
+    console.log('Starting in-memory MongoDB database server fallback...');
+    try {
+      mongoServer = await MongoMemoryServer.create();
+      const mongoUri = mongoServer.getUri();
+      await mongoose.connect(mongoUri);
+      console.log('Connected to In-Memory MongoDB at', mongoUri);
+    } catch (fallbackErr) {
+      console.error('Failed to start in-memory MongoDB:', fallbackErr);
+      setTimeout(connectDB, 5000);
+    }
   }
 };
 
@@ -116,7 +129,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 9000;
+const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

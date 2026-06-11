@@ -28,7 +28,7 @@ npm run dev
 
 The app will start at:
 - Frontend: `http://localhost:5173`
-- Backend: `http://localhost:5000`
+- Backend: `http://localhost:5001`
 
 ## Tech Stack 🛠️
 - **Frontend**: React, Vite, Tailwind CSS, Lucide Icons, Framer Motion
