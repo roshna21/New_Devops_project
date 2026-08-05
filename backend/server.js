@@ -26,6 +26,32 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
+// Health check
+app.get('/health', (req, res) => {
+  const dbState = mongoose.connection.readyState;
+  const database = dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'disconnected';
+  const isHealthy = dbState === 1;
+
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'ok' : 'degraded',
+    service: 'nova-chat-backend',
+    database,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Demo fault injection: kills the process so Kubernetes reports the pod as
+// restarting. Hitting it repeatedly trips kubelet's backoff into CrashLoopBackOff,
+// which is what the SolutionSync monitoring agent detects.
+if (process.env.ENABLE_CRASH_ENDPOINT === 'true') {
+  app.post('/crash', (req, res) => {
+    console.error('Crash endpoint invoked - exiting process');
+    res.status(200).json({ status: 'crashing', service: 'nova-chat-backend' });
+    // Let the response flush before taking the process down.
+    res.on('finish', () => process.exit(1));
+  });
+}
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);

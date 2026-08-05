@@ -4,8 +4,17 @@ import { toast } from 'sonner';
 
 const ChatContext = createContext();
 
+const getStoredUser = () => {
+  try {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+};
+
 export const ChatProvider = ({ children }) => {
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
+  const [user, setUser] = useState(getStoredUser());
   const [selectedChat, setSelectedChat] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [typingStatus, setTypingStatus] = useState({}); // userId -> boolean

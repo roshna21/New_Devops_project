@@ -9,4 +9,6 @@ COPY . .
 
 EXPOSE 5001
 
-CMD ["npm", "run", "dev"]
+# Not `npm run dev`: nodemon would restart the process inside the container,
+# so a crashed app would never surface to Kubernetes as a pod restart.
+CMD ["npm", "start"]

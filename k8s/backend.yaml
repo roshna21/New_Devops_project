@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nova-backend
+  namespace: novachat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nova-backend
+  template:
+    metadata:
+      labels:
+        app: nova-backend
+    spec:
+      containers:
+      - name: nova-backend
+        # Docker Desktop's Kubernetes runs on containerd, which cannot see images in
+        # the local Docker daemon - that is what made `imagePullPolicy: Never` fail
+        # with ErrImageNeverPull. Load the image into the node's containerd store:
+        #   docker save <image> | docker exec -i desktop-control-plane \
+        #     ctr -n k8s.io images import -
+        # IfNotPresent then uses that copy, and still falls back to pulling from the
+        # registry if the image is ever missing.
+        image: roshna21/selfhealingsys-nova-backend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5001
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "5001"
+        - name: JWT_SECRET
+          value: "your_super_secret_jwt_key_12345"
+        - name: MONGODB_URI
+          value: "mongodb://mongodb:27017/nova-chat"
+        - name: SOLUTIONSYNC_URL
+          value: "http://host.docker.internal:8000/run"
+        - name: ENABLE_CRASH_ENDPOINT
+          value: "true"
+        # /health reports 503 until Mongo connects. Without a startupProbe the
+        # liveness probe kills the container while Mongo is still starting, which
+        # shows up as a phantom restart the monitoring agent would report as a real
+        # incident. startupProbe holds liveness off until the app is up once.
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 5001
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5001
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5001
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nova-backend
+  namespace: novachat
+spec:
+  selector:
+    app: nova-backend
+  ports:
+  - port: 5001
+    targetPort: 5001

@@ -4,8 +4,17 @@ const baseURL = '/api';
 
 const API = axios.create({ baseURL });
 
+const getStoredUser = () => {
+  try {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+};
+
 API.interceptors.request.use((req) => {
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = getStoredUser();
   if (user?.token) {
     req.headers.Authorization = `Bearer ${user.token}`;
   }
